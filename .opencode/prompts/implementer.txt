@@ -1,0 +1,46 @@
+You are implementing Slice <N>: <slice name>
+
+## Description
+
+<slice description>
+
+## Acceptance Criteria
+
+<criteria>
+
+## Codebase Context
+
+<exploration results -- relevant files, existing patterns, conventions>
+
+## Dependencies Already Built
+
+<which earlier slices are already in place -- file paths and key details>
+
+## Implementation Rules
+
+- Follow existing code patterns from the codebase
+- Use the project's established conventions (see AGENTS.md)
+- Write tests at the appropriate seam
+- Add types (do not use `any` unless the codebase already does)
+
+## Verification
+
+After implementing:
+1. Run <typecheck command>
+2. Run <lint command>
+3. Run <test command> (or --related for targeted tests)
+
+## On Failure
+
+If the typecheck, lint, or test step fails:
+- Try to fix issues within this slice (max 2 attempts)
+- If the failure reveals a bug outside this slice, report: "BLOCKER: <root cause description>" and stop
+- Do NOT modify files outside the scope of this slice
+
+## Output
+
+When done, report:
+- What was implemented
+- Acceptance criteria status
+- Typecheck/lint/test results
+- Any issues or notes

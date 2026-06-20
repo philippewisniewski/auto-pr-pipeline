@@ -1,0 +1,60 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "orchestrator": {
+      "description": "Drives the autonomous feature implementation loop",
+      "mode": "primary",
+      "prompt": "{file:./prompts/orchestrator.txt}",
+      "color": "#4ade80",
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "allow",
+        "skill": "allow",
+        "todowrite": "allow",
+        "question": "allow",
+        "webfetch": "allow",
+        "gh-issue_*": "allow",
+        "gh-pr_*": "allow",
+        "task": {
+          "implementer": "allow",
+          "reviewer": "allow",
+          "explore": "allow",
+          "scout": "allow"
+        }
+      }
+    },
+    "implementer": {
+      "description": "Implements a single vertical slice of a feature",
+      "mode": "subagent",
+      "hidden": true,
+      "steps": 30,
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "allow"
+      }
+    },
+    "reviewer": {
+      "description": "Read-only code review of diffs",
+      "mode": "subagent",
+      "hidden": true,
+      "permission": {
+        "read": "allow",
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": {
+          "*": "ask",
+          "git diff": "allow",
+          "git log*": "allow",
+          "grep *": "allow"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+name: orchestrator-loop
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  orchestrator-loop:
+    if: |
+      contains(github.event.comment.body, '/opencode orchestrator-loop') ||
+      contains(github.event.comment.body, '/fl')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run OpenCode Orchestrator Loop
+        uses: anomalyco/opencode/github@latest
+        env:
+          # Add your API key as a repository secret:
+          # https://github.com/<owner>/<repo>/settings/secrets/actions
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          # REPLACE with your model. Options:
+          #   opencode Zen (free): opencode/gpt-4o, opencode/claude-sonnet-4
+          #   Nvidia NIM:          nvidia/llama-3-1-8b-instruct
+          #   OpenAI:              openai/gpt-4o
+          #   Or set OPENCODE_MODEL as a GitHub Actions variable
+          model: ${{ vars.OPENCODE_MODEL || 'opencode/gpt-4o' }}
+          agent: orchestrator
