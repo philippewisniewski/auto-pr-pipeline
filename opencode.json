@@ -4,7 +4,7 @@
     "orchestrator": {
       "description": "Drives the autonomous feature implementation loop",
       "mode": "primary",
-      "prompt": "{file:./prompts/orchestrator.txt}",
+      "prompt": "{file:./.opencode/prompts/orchestrator.txt}",
       "color": "#4ade80",
       "permission": {
         "read": "allow",

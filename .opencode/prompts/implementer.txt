@@ -19,9 +19,13 @@ You are implementing Slice <N>: <slice name>
 ## Implementation Rules
 
 - Follow existing code patterns from the codebase
-- Use the project's established conventions (see AGENTS.md)
+- Use the project's established conventions (see AGENTS.md or package.json scripts)
 - Write tests at the appropriate seam
 - Add types (do not use `any` unless the codebase already does)
+- **Cross-slice awareness:** Before implementing, read `.opencode/findings-board.md` (if it exists). Other implementers may have posted useful context (existing patterns, test helpers, gotchas). During implementation, append any discoveries:
+  ```
+  echo "- <your finding>" >> .opencode/findings-board.md
+  ```
 
 ## Verification
 

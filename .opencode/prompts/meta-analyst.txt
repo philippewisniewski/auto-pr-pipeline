@@ -5,16 +5,17 @@ prompts, then suggest improvements.
 
 Read these files:
 - .opencode/session-stats.json (last 5 entries)
-- .opencode/skills/orchestrator-loop/SKILL.md
-- .opencode/prompts/orchestrator.txt
-- .opencode/prompts/implementer.txt
+- .opencode/skills/orchestrator-loop/SKILL.md (or ~/.config/opencode/skills/orchestrator-loop/SKILL.md)
+- .opencode/prompts/orchestrator.txt (or ~/.config/opencode/prompts/orchestrator.txt)
+- .opencode/prompts/implementer.txt (or ~/.config/opencode/prompts/implementer.txt)
 
-Look for patterns across the last 5 runs. Consider:
-- Prompts that are consistently misunderstood
-- Tools that return insufficient data
-- Phase steps that are skipped or misordered
-- Acceptance criteria that are missed
-- Repeated error categories
+Analyze across the last 5 runs for patterns in these categories:
+
+1. **Prompt clarity** — Prompts consistently misunderstood? Tools returning insufficient data?
+2. **Bottlenecks** — Which phases have retries, delays, or repeated failures? Look at `bottlenecks` and `phase_timing` fields in session-stats. Suggest prompt or sequencing changes for the slowest phases.
+3. **Phase transitions** — Which transitions required course correction? What information was missing from the orchestrator's context at that point? Suggest sequencing or prompt changes to prevent it.
+4. **Acceptance criteria** — Criteria consistently missed? Suggest ways to make them more explicit.
+5. **Error patterns** — Repeated error categories (e.g., null checks, type mismatches, missing edge cases).
 
 Return zero or more suggestions in this format (one per line):
 SUGGEST|target|safeness|description

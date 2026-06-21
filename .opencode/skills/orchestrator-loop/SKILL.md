@@ -9,7 +9,7 @@ An autonomous loop that takes a work item (issue/PR/description) and produces a 
 
 **Mode: HITL initial selection, then AFK execution.** The INTAKE phase asks the user which work item to work on. Once selected, the loop runs autonomously and opens a PR for human review.
 
-When exploring the codebase, use the project's domain glossary, read AGENTS.md for build/lint/test commands, and check ADRs in the area you're touching.
+When exploring the codebase, use the project's domain glossary, read AGENTS.md (or package.json scripts as fallback) for build/lint/test commands, and check ADRs in the area you're touching.
 
 At each phase transition, announce the phase with text:
 → Phase <N>: <NAME>
@@ -139,7 +139,7 @@ Use these exact todowrite items (include all prior items unchanged, then add the
 
 1. Call `@explore` to understand the project structure, relevant modules, and existing patterns
 2. If the feature touches external dependencies or needs library research, call `@scout`
-3. Read AGENTS.md and any relevant ADRs in the area
+3. Read AGENTS.md (or package.json scripts as fallback) and any relevant ADRs in the area
 4. Optionally load the `to-prd` skill for formal analysis if the feature is complex
 5. Identify the test seams: how will each slice be tested?
 
@@ -191,14 +191,18 @@ Use these exact todowrite items (include all prior items unchanged, then add the
 { content: "Implement slices", status: "in_progress", priority: "high" }
 ```
 
+**Cross-slice knowledge sharing:** Before dispatching any slices, create a shared findings board at `.opencode/findings-board.md` with content `# Findings Board\n`. Each implementer will read from and write to this file to share discoveries (existing patterns, test helpers, gotchas) with parallel slices.
+
 For each slice:
 
 1. Construct a dynamic prompt containing:
    - The slice description and acceptance criteria
    - Relevant codebase context from Phase 2
-   - The implementer prompt template (`prompts/implementer.txt`)
-   - The project's build/lint/test commands (from AGENTS.md)
+   - The implementer prompt template (`.opencode/prompts/implementer.txt`)
+   - The project's build/lint/test commands (from AGENTS.md or package.json scripts)
    - Which earlier slices are already in place (for context)
+   - **The findings board path** (`.opencode/findings-board.md`) — instruct the implementer to read it before starting and append any discoveries during implementation
+   - **The target branch name** (`{branch_prefix}<issue-number>-<short-name>`) so the implementer checks out the correct base
 
 2. Spawn an `implementer` via the task tool:
    ```
@@ -218,10 +222,13 @@ For each slice:
 
 Parallel execution: independent slices (no blocked-by relationship) can run in parallel. Spawn them simultaneously via the task tool.
 
+After all slices complete, clean up: `rm -f .opencode/findings-board.md`
+
 Required before proceeding:
 - [ ] All slices are complete
 - [ ] All typecheck/lint/test checks pass
 - [ ] `todowrite` shows all items complete
+- [ ] Findings board cleaned up
 
 ---
 
@@ -236,12 +243,13 @@ Use these exact todowrite items (include all prior items unchanged, then add the
 { content: "Run typecheck and lint", status: "pending", priority: "medium" }
 ```
 
-1. Run `npm test` (or `bun test`, `pytest`, etc. -- from AGENTS.md)
+1. Run `npm test` (or `bun test`, `pytest`, etc. -- from AGENTS.md or package.json scripts)
 2. If tests fail:
    - Load the `diagnose` skill
    - Investigate the root cause
    - If the failure is in the new code: dispatch an implementer for the fix
    - If the failure is a pre-existing issue: note it but do NOT block
+   - If pre-existing: record it in `.opencode/known-failures.md` with the test command and error signature so subsequent sessions can skip or proactively fix known issues
 3. Re-run tests after any fix
 4. Run `npm run typecheck` and `npm run lint` (or equivalents)
 
@@ -282,6 +290,8 @@ Use these exact todowrite items (include all prior items unchanged, then add the
    - **APPROVED**: Proceed to Phase 7. Update todowrite: `"Review round N/3"`→"completed"
    - **CHANGES_REQUESTED (minor)**: Fix issues directly, no round increment. Re-run tests/typecheck/lint. Re-spawn reviewer for same round to re-confirm.
    - **CHANGES_REQUESTED (critical)**: Go to step 3.
+
+   **Fix approach for critical issues:** For simple issues (1-2 line changes, straightforward fixes like null checks or status codes), the orchestrator may fix them directly and skip implementer dispatch. For complex or multi-file changes requiring new logic or architectural shifts, always dispatch through the implementer (step 3). Use your judgment — when in doubt, dispatch the implementer.
 
 3. **Critical issues — feedback injection:**
    - Store the reviewer's specific issue list as `feedback_history[round]`
@@ -334,24 +344,41 @@ Use these exact todowrite items (include all prior items unchanged, then add the
 { content: "Phase 7: MERGE", status: "in_progress", priority: "high" }
 { content: "Create branch", status: "in_progress", priority: "high" }
 { content: "Commit and push", status: "pending", priority: "medium" }
+{ content: "Pre-merge review", status: "pending", priority: "high" }
 { content: "Open PR", status: "pending", priority: "medium" }
 ```
 
 1. Create a branch: `git checkout -b {branch_prefix}<issue-number>-<short-name>`
 2. Stage and commit the changes with a descriptive message referencing the issue
 3. Push: `git push origin {branch_prefix}<branch-name>`
-4. Open a PR using `gh-pr_create` with title, body, head=<branch>, and base="main"
-5. The PR is now ready for human review
+4. **Pre-merge review gate:**
+   Spawn a fresh reviewer subagent with the complete diff and context:
+   ```
+   task({
+     agent: "reviewer",
+     message: "Final pre-merge review. Review the full diff. Context: <brief>.
+     Start your response with one of:
+     - APPROVED
+     - CHANGES_REQUESTED (critical): <reason>
+     - CHANGES_REQUESTED (minor): <reason>
+     Then list each specific issue as a bullet point."
+   })
+   ```
+   - **APPROVED**: Proceed to step 5.
+   - **CHANGES_REQUESTED**: Fix all listed issues directly. Re-run tests/typecheck/lint. Re-spawn the reviewer for one more round (max 1 retry). If still not approved, add a BLOCKER note to the PR body and proceed.
+5. Open a PR using `gh-pr_create` with title, body, head=<branch>, and base="main". Include in the PR body: "🤖 This PR was auto-generated by the orchestrator-loop. Human review and approval required before merging."
+6. The PR is now ready for human review. The orchestrator cannot merge its own PRs — a human must review and approve before merging.
 
 Required before completing:
 - [ ] Branch pushed to remote
+- [ ] Pre-merge review passed
 - [ ] PR created with description and issue reference
 
 ---
 
 ## Completion
 
-The loop is done. The PR is open for human review. Return a summary:
+The loop is done. The PR is open for human review. **Important:** The orchestrator cannot merge its own PRs — a human must review, approve, and merge. Return a summary:
 - Link to the PR
 - What was implemented
 - Acceptance criteria status
@@ -372,9 +399,12 @@ Use these exact todowrite items (include all prior items unchanged, then add the
 { content: "Apply safe suggestions", status: "pending", priority: "low" }
 ```
 
-### 8a — Collect session trace
+### 8a — Collect session trace (stub)
 
-Append to `.opencode/session-stats.json`:
+Append a stub entry to `.opencode/session-stats.json` with `"meta": "in_progress"`. Populate the fields as follows:
+
+- **phase_timing**: Estimate seconds spent in each phase. If you didn't track exact timestamps, log `"0"` for untracked phases — the meta-analyst still benefits from the phases you did track.
+- **bottlenecks**: List any phases that required retries, course correction, or felt unusually slow. Examples: `"implement: slice 2 needed 2 retries — missing test context"`, `"review: 3 rounds needed — acceptance criteria ambiguous"`. Leave empty array `[]` if none.
 
 ```json
 {
@@ -398,7 +428,19 @@ Append to `.opencode/session-stats.json`:
         "test": "ok" | "fail_then_fix",
         "review": "N_rounds",
         "merge": "ok",
-        "meta": "ok"
+        "meta": "in_progress"
+      },
+      "bottlenecks": [
+        "<phase>: <description of retries or slowness>"
+      ],
+      "phase_timing": {
+        "intake": "<seconds>",
+        "analyze": "<seconds>",
+        "decompose": "<seconds>",
+        "implement": "<seconds>",
+        "test": "<seconds>",
+        "review": "<seconds>",
+        "merge": "<seconds>"
       },
       "pr_link": "<pr_url>"
     }
@@ -406,16 +448,25 @@ Append to `.opencode/session-stats.json`:
 }
 ```
 
-Create the file with an empty `sessions: []` array if it doesn't exist, then append this entry.
+- **If file doesn't exist**: Create it with the JSON above (containing one entry in `sessions`).
+- **If file exists**: Read the file, parse as JSON, push the new entry into the `sessions` array, then write back as valid JSON. Do NOT append raw text — this will break JSON formatting (missing commas).
+
+The `meta` field will be updated to `"ok"` in step 8d.
 
 ### 8b — Run analysis agent
 
-Read `prompts/meta-analyst.txt` and use its content as the task message:
+Read `.opencode/prompts/meta-analyst.txt` (or `~/.config/opencode/prompts/meta-analyst.txt` as fallback) and use its content as the task message. If neither file exists, use this default instruction:
+
+```
+Analyze session traces for bottlenecks, error patterns, and phase-timing anomalies. Return SUGGEST lines.
+```
+
+Dispatch:
 
 ```
 task({
   agent: "explore",
-  message: "<content of prompts/meta-analyst.txt>"
+  message: "<content of meta-analyst prompt or default>"
 })
 ```
 
@@ -432,9 +483,14 @@ For each suggestion returned:
   - <description> (target)
   ```
 
+### 8d — Finalize session trace
+
+Update the session entry in `.opencode/session-stats.json`: change `"meta": "in_progress"` to `"meta": "ok"`. Read the file, modify the last entry's phases.meta, and write it back. (This ensures the trace captures the outcome of the analysis, not just the pre-analysis state.)
+
 If any suggestions were applied, re-run the install script to propagate changes to the global config.
 
 Required before completing:
-- [ ] Session trace appended to session-stats.json
+- [ ] Session trace stub written (8a)
 - [ ] Analysis agent ran (even if no suggestions)
 - [ ] Safe suggestions applied, needs-review suggestions reported
+- [ ] Session trace finalized — phases.meta set to "ok" (8d)
