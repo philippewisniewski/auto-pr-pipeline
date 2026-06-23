@@ -16,11 +16,22 @@ echo "  skills/orchestrator-loop/SKILL.md"
 # ── Agent config ────────────────────────────────────────────────────
 if [ -f "${OPENCODE_DIR}/opencode.json" ]; then
   if command -v jq &>/dev/null; then
-    TMP_FILE=$(mktemp)
-    jq -c '{agent: .agent}' "${REPO_DIR}/opencode.json" > "$TMP_FILE"
-    jq -s '.[0] * .[1]' "${OPENCODE_DIR}/opencode.json" "$TMP_FILE" > "${TMP_FILE}.merged" \
-      && mv "${TMP_FILE}.merged" "${OPENCODE_DIR}/opencode.json"
-    rm -f "$TMP_FILE"
+    AGENT_EXTRACT=$(mktemp)
+    jq -c '{agent: .agent}' "${REPO_DIR}/opencode.json" > "$AGENT_EXTRACT"
+    MERGED_FILE="${OPENCODE_DIR}/opencode.json.merged"
+    jq -s '.[0] * .[1]' "${OPENCODE_DIR}/opencode.json" "$AGENT_EXTRACT" > "$MERGED_FILE"
+    # Reorder agent keys: build → plan → orchestrator → implementer → reviewer
+    # Include build/plan with {} fallback so the tab order is correct even
+    # when the existing config doesn't define them (built-in defaults apply).
+    jq '.agent as $a | .agent = (
+      {build: ($a.build // {})} +
+      {plan: ($a.plan // {})} +
+      {orchestrator: $a.orchestrator} +
+      {implementer: $a.implementer} +
+      {reviewer: $a.reviewer}
+    )' "$MERGED_FILE" > "${MERGED_FILE}.reordered" \
+      && mv "${MERGED_FILE}.reordered" "${OPENCODE_DIR}/opencode.json"
+    rm -f "$AGENT_EXTRACT" "$MERGED_FILE"
     echo "  opencode.json (agents merged)"
   else
     echo ""
