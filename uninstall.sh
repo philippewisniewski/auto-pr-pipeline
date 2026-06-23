@@ -8,46 +8,16 @@ echo ""
 
 removed=false
 
-# ── Skills ──────────────────────────────────────────────────────────
-for skill in orchestrator-loop diagnose to-issues to-prd; do
-  if [ -d "${OPENCODE_DIR}/skills/${skill}" ]; then
-    rm -rf "${OPENCODE_DIR}/skills/${skill}"
-    echo "  skills/${skill}"
-    removed=true
-  fi
-done
+# ── Skill ────────────────────────────────────────────────────────────
+if [ -d "${OPENCODE_DIR}/skills/orchestrator-loop" ]; then
+  rm -rf "${OPENCODE_DIR}/skills/orchestrator-loop"
+  echo "  skills/orchestrator-loop"
+  removed=true
+fi
 
 # Remove empty skills directory
 if [ -d "${OPENCODE_DIR}/skills" ] && [ -z "$(ls -A "${OPENCODE_DIR}/skills" 2>/dev/null)" ]; then
   rmdir "${OPENCODE_DIR}/skills" 2>/dev/null || true
-fi
-
-# ── Prompts ─────────────────────────────────────────────────────────
-for prompt in orchestrator.txt implementer.txt meta-analyst.txt; do
-  if [ -f "${OPENCODE_DIR}/prompts/${prompt}" ]; then
-    rm "${OPENCODE_DIR}/prompts/${prompt}"
-    echo "  prompts/${prompt}"
-    removed=true
-  fi
-done
-
-# Remove empty prompts directory
-if [ -d "${OPENCODE_DIR}/prompts" ] && [ -z "$(ls -A "${OPENCODE_DIR}/prompts" 2>/dev/null)" ]; then
-  rmdir "${OPENCODE_DIR}/prompts" 2>/dev/null || true
-fi
-
-# ── Custom tools ────────────────────────────────────────────────────
-for tool_file in gh-issue.ts gh-pr.ts; do
-  if [ -f "${OPENCODE_DIR}/tools/${tool_file}" ]; then
-    rm "${OPENCODE_DIR}/tools/${tool_file}"
-    echo "  tools/${tool_file}"
-    removed=true
-  fi
-done
-
-# Remove only the tool files we own, leave other user tools intact
-if [ -d "${OPENCODE_DIR}/tools" ] && [ -z "$(ls -A "${OPENCODE_DIR}/tools" 2>/dev/null)" ]; then
-  rm -rf "${OPENCODE_DIR}/tools"
 fi
 
 # ── opencode.json note ──────────────────────────────────────────────

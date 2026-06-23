@@ -26,15 +26,8 @@ jobs:
       - name: Run OpenCode Orchestrator Loop
         uses: anomalyco/opencode/github@latest
         env:
-          # Add your API key as a repository secret:
-          # https://github.com/<owner>/<repo>/settings/secrets/actions
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
-          # REPLACE with your model. Options:
-          #   opencode Zen (free): opencode/gpt-4o, opencode/claude-sonnet-4
-          #   Nvidia NIM:          nvidia/llama-3-1-8b-instruct
-          #   OpenAI:              openai/gpt-4o
-          #   Or set OPENCODE_MODEL as a GitHub Actions variable
           model: ${{ vars.OPENCODE_MODEL || 'opencode/gpt-4o' }}
           agent: orchestrator

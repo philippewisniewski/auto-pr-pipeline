@@ -2,13 +2,13 @@
   "$schema": "https://opencode.ai/config.json",
   "agent": {
     "orchestrator": {
-      "description": "Drives the autonomous feature implementation loop",
+      "description": "Lightweight autonomous feature implementation loop",
       "mode": "primary",
-      "prompt": "{file:./.opencode/prompts/orchestrator.txt}",
       "color": "#4ade80",
       "permission": {
         "read": "allow",
         "edit": "allow",
+        "write": "allow",
         "glob": "allow",
         "grep": "allow",
         "bash": "allow",
@@ -16,24 +16,28 @@
         "todowrite": "allow",
         "question": "allow",
         "webfetch": "allow",
-        "gh-issue_*": "allow",
-        "gh-pr_*": "allow",
+        "gh-issue_list": "allow",
+        "gh-issue_view": "allow",
+        "gh-issue_create": "allow",
+        "gh-pr_list": "allow",
+        "gh-pr_view": "allow",
+        "gh-pr_create": "allow",
         "task": {
           "implementer": "allow",
           "reviewer": "allow",
-          "explore": "allow",
-          "scout": "allow"
+          "explore": "allow"
         }
       }
     },
     "implementer": {
-      "description": "Implements a single vertical slice of a feature",
+      "description": "Implements a single slice of a feature",
       "mode": "subagent",
       "hidden": true,
       "steps": 30,
       "permission": {
         "read": "allow",
         "edit": "allow",
+        "write": "allow",
         "glob": "allow",
         "grep": "allow",
         "bash": "allow"
