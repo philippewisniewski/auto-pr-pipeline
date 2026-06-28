@@ -50,6 +50,11 @@ jobs:
                format('New PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) }}
             ${{ github.event_name == 'pull_request_review_comment' && github.event.comment.body }}
 
+      - name: Configure git for safety
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Read PR summary
         id: pr-summary
         run: |

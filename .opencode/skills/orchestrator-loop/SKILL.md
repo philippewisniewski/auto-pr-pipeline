@@ -99,7 +99,9 @@ For `review` intent: start here. For `bugfix`/`feature`: after Phase 4.
 
 ## Phase 6: Human Handoff (PR Summary)
 
-The GitHub Actions workflow handles branch creation, commit, push, and PR. The AI only writes a structured summary file that the workflow reads.
+The GitHub Actions workflow handles all branch creation, commit, push, and PR creation. The AI does NOT run any git commands — it only writes summary files that the workflow reads.
+
+IMPORTANT: Do NOT run `git add`, `git commit`, `git push`, `gh pr create`, `git checkout -b`, or any other git commands. The workflow handles those. Only write the two summary files below.
 
 1. Write `.opencode/last-run/summary.md` with the following format:
    ```markdown
