@@ -40,7 +40,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: ${{ vars.OPENCODE_MODEL || 'opencode/gpt-5.4-nano' }}
+          model: ${{ vars.OPENCODE_MODEL || 'gpt-5.4-nano' }}
           use_github_token: true
           prompt: >-
             ${{ github.event_name == 'issues' &&
