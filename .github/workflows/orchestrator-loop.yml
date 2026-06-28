@@ -38,6 +38,8 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Run OpenCode Orchestrator Loop
+        id: opencode
+        continue-on-error: true
         uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -54,44 +56,18 @@ jobs:
                format('New PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) }}
             ${{ github.event_name == 'pull_request_review_comment' && github.event.comment.body }}
 
-      - name: Reset any AI commits (keep changes, uncommit)
+      - name: Create Pull Request from pushed branch
+        if: always() && steps.opencode.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || github.token }}
         run: |
-          if [ "$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
-            git reset --soft HEAD~$(git rev-list --count @{u}..HEAD)
-          fi
-
-      - name: Read PR summary
-        id: pr-summary
-        run: |
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          TITLE=$(head -1 .opencode/last-run/summary.md 2>/dev/null | sed 's/^# //' || echo "Automated changes")
           if [ -f .opencode/last-run/summary.md ]; then
-            echo "found=true" >> "$GITHUB_OUTPUT"
-            {
-              echo 'title<<EOF'
-              head -1 .opencode/last-run/summary.md | sed 's/^# //'
-              echo EOF
-            } >> "$GITHUB_OUTPUT"
-            {
-              echo 'branch<<EOF'
-              jq -r '.branch // "chore/auto-pr"' .opencode/last-run/meta.json 2>/dev/null || echo "chore/auto-pr"
-              echo EOF
-            } >> "$GITHUB_OUTPUT"
-            {
-              echo 'commit_message<<EOF'
-              jq -r '.commitMessage // "chore: automated changes"' .opencode/last-run/meta.json 2>/dev/null || echo "chore: automated changes"
-              echo EOF
-            } >> "$GITHUB_OUTPUT"
-          else
-            echo "found=false" >> "$GITHUB_OUTPUT"
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "$TITLE" \
+              --body-file .opencode/last-run/summary.md \
+              --repo "${{ github.repository }}" || true
           fi
-
-      - name: Create Pull Request
-        if: steps.pr-summary.outputs.found == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.PAT_TOKEN || github.token }}
-          commit-message: ${{ steps.pr-summary.outputs.commit_message }}
-          title: ${{ steps.pr-summary.outputs.title }}
-          body-path: .opencode/last-run/summary.md
-          branch: ${{ steps.pr-summary.outputs.branch }}
-          base: main
-          delete-branch: true
