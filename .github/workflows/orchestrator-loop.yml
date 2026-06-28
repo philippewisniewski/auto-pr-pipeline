@@ -30,7 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Run OpenCode Orchestrator Loop
@@ -78,7 +78,7 @@ jobs:
         if: steps.pr-summary.outputs.found == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN || github.token }}
           commit-message: ${{ steps.pr-summary.outputs.commit_message }}
           title: ${{ steps.pr-summary.outputs.title }}
           body-path: .opencode/last-run/summary.md

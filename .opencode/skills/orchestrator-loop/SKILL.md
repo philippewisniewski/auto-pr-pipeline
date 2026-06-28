@@ -77,6 +77,12 @@ For `bugfix`/`feature`: execute each slice in order.
 
 After all slices, run the full verification suite once more.
 
+6. Clean up temporary files created during testing/linting:
+   - Restore any `package.json`, lockfiles, or config files that were modified for test tooling
+   - Delete `node_modules/`, `.venv/`, or other dependency directories installed only for verification
+   - Use `git diff --name-only` to identify new/modified files and revert temp ones
+   - Only keep actual implementation changes and the `.opencode/last-run/` summary files
+
 ## Phase 5: Review (Verify + Fix)
 
 For `review` intent: start here. For `bugfix`/`feature`: after Phase 4.
@@ -131,6 +137,8 @@ The workflow's `create-pull-request` step reads these files and creates the PR f
 
 ## Gotchas
 
+- During Phase 4 the agent may install dependencies for verification (npm, pip, etc.).
+  Clean these up before Phase 6 to avoid committing install artifacts as part of the PR.
 - `task(explore)` is read-only. Do not ask it to make changes.
 - If the reviewer sends architecture-level feedback, the primary re-evaluates
   the approach — do not re-dispatch the same implementation unchanged.
