@@ -16,6 +16,55 @@ metadata:
 6-phase pipeline from trigger to PR. Starts with the human, ends with the
 human. Announce each phase transition with `→ Phase <N>: <NAME>`.
 
+## Preamble: One-Time Repo Bootstrap
+
+Before any phase, check if `.github/workflows/auto-pr-pipeline.yml` exists. If it does, proceed straight to Phase 1. If not, bootstrap the repo:
+
+1. Create `.github/workflows/auto-pr-pipeline.yml`:
+   ```yaml
+   name: auto-pr-pipeline
+   on:
+     issue_comment:
+       types: [created]
+     pull_request_review_comment:
+       types: [created]
+     issues:
+       types: [opened, reopened]
+     pull_request:
+       types: [opened, synchronize, reopened, ready_for_review]
+   jobs:
+     run:
+       uses: philippewisniewski/auto-pr-pipeline/.github/workflows/auto-pr-pipeline.yml@main
+   ```
+
+2. Create `opencode.json` at the repo root if it doesn't already exist:
+   ```json
+   {
+     "$schema": "https://opencode.ai/config.json"
+   }
+   ```
+
+   Do NOT include `instructions` — the global install provides those. However, if the repo already has an `opencode.json` with `instructions`, leave it untouched.
+
+3. Enable PR creation for the repo:
+   ```bash
+   gh api -X PUT /repos/{owner}/{repo}/actions/permissions/workflow \
+     -f can_approve_pull_request_reviews=true \
+     -f default_workflow_permissions=write
+   ```
+   Use `gh repo view --json owner,name` to determine owner/repo. If `gh` is not authenticated or the API call fails, log a warning and continue — the user can enable it manually in Settings → Actions → General.
+
+4. Commit and push the bootstrap files:
+   ```bash
+   git add -A
+   git commit -m "chore: bootstrap auto-pr-pipeline"
+   if git remote -v | grep -q origin; then git push; else
+     echo "Warning: no remote configured — bootstrap commit is local only"
+   fi
+   ```
+
+5. Announce `→ Bootstrap complete for {owner}/{repo}` and proceed to Phase 1. Since this is the first run, the AI will handle git operations itself (see Phase 6 first-run note).
+
 ## Phase 1: Trigger (Intent Detection)
 
 Infer intent from natural language or GitHub event context:
@@ -99,9 +148,18 @@ For `review` intent: start here. For `bugfix`/`feature`: after Phase 4.
 
 ## Phase 6: Human Handoff (PR Summary)
 
-The GitHub Actions workflow handles all branch creation, commit, push, and PR creation. The AI does NOT run any git commands — it only writes summary files that the workflow reads.
+The GitHub Actions workflow normally handles all branch creation, commit, push, and PR creation. The AI does NOT run any git commands — it only writes summary files that the workflow reads.
 
-IMPORTANT: Do NOT run `git add`, `git commit`, `git push`, `gh pr create`, `git checkout -b`, or any other git commands. The workflow handles those. Only write the two summary files below.
+IMPORTANT: On subsequent runs (when the workflow is present), do NOT run `git add`, `git commit`, `git push`, `gh pr create`, `git checkout -b`, or any other git commands. The workflow handles those. Only write the two summary files below.
+
+**First-run exception:** On the bootstrap run (no workflow present yet), the AI MUST handle all git operations itself since there is no workflow to do it. After Phase 5, follow these steps:
+1. Write `.opencode/last-run/summary.md` and `meta.json` (as specified below)
+2. Determine the branch name from `meta.json` and create it: `git checkout -b {branch}`
+3. Stage changes: `git add -A`
+4. Commit: `git commit -m "{message from meta.json}"`
+5. Push: `git push origin {branch}`
+6. Create PR: `gh pr create --base main --head {branch} --title "{title}" --body-file .opencode/last-run/summary.md`
+7. Announce `→ Bootstrap session complete. PR created.`
 
 1. Write `.opencode/last-run/summary.md` with the following format:
    ```markdown
