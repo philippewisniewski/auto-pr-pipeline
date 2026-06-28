@@ -1,11 +1,12 @@
 ---
 name: orchestrator-loop
 description: >-
-  Run a full feature implementation pipeline from user prompt or GitHub issue
-  through to a reviewed PR. Covers the complete workflow: trigger → intake →
-  analyze → implement → review → merge. Use when the user wants to fix a bug,
-  implement a feature, review a PR, plan work, or triage an issue — whether
-  prompted locally or via a GitHub event.
+  CRITICAL: This repo MUST use the Orchestrator Loop pipeline. If the user asks
+  to fix a bug, implement a feature, review a PR, plan work, or triage an issue,
+  you MUST call skill({ name: "orchestrator-loop" }) before proceeding. The
+  pipeline is: trigger → intake → analyze → implement → review → merge (human
+  handoff). Do NOT skip loading this skill — it defines this repo's standard
+  operating procedure.
 metadata:
   version: "3.0"
 ---
@@ -90,20 +91,43 @@ For `review` intent: start here. For `bugfix`/`feature`: after Phase 4.
 3. Re-review after fixes. Repeat until satisfied.
 4. `todowrite` — mark review complete
 
-## Phase 6: Merge (Human Handoff)
+## Phase 6: Human Handoff (PR Summary)
 
-1. Determine branch prefix from issue label:
-   - `bug`/`bugfix` → `bugfix/`
-   - `feature`/`enhancement` → `feature/`
-   - `docs` → `docs/`
-   - Default → `chore/`
-2. `git checkout -b {prefix}{N}-short-name`
-3. `git add -A && git commit -m 'type: description (#N)'`
-4. `git push origin HEAD`
-5. `gh-pr_create(title, body, head, base="main")`
-   - Body includes: `Closes #N`, summary, AC status, caveats
+The GitHub Actions workflow handles branch creation, commit, push, and PR. The AI only writes a structured summary file that the workflow reads.
 
-PR is opened for human review.
+1. Write `.opencode/last-run/summary.md` with the following format:
+   ```markdown
+   # {PR title}
+   
+   Closes #{issue/PR number}
+   
+   ## Summary
+   {What was done, in plain language}
+   
+   ## Acceptance Criteria
+   - [ ] Criterion 1 {status}
+   - [ ] Criterion 2 {status}
+   
+   ## Caveats
+   {Anything the reviewer should know}
+   ```
+
+2. Also write `.opencode/last-run/meta.json` with:
+   ```json
+   {
+     "branch": "{prefix}-{short-name}",
+     "base": "main",
+     "commitMessage": "type: description (#N)"
+   }
+   ```
+
+Branch prefix from issue label:
+- `bug`/`bugfix` → `bugfix/`
+- `feature`/`enhancement` → `feature/`
+- `docs` → `docs/`
+- Default → `chore/`
+
+The workflow's `create-pull-request` step reads these files and creates the PR for human review.
 
 ## Gotchas
 

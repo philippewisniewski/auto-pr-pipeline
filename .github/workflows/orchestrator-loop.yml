@@ -38,5 +38,43 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: ${{ vars.OPENCODE_MODEL || 'opencode/gpt-4o' }}
+          use_github_token: true
+
+      - name: Read PR summary
+        id: pr-summary
+        run: |
+          if [ -f .opencode/last-run/summary.md ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            {
+              echo 'title<<EOF'
+              head -1 .opencode/last-run/summary.md | sed 's/^# //'
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+            {
+              echo 'branch<<EOF'
+              jq -r '.branch // "chore/auto-pr"' .opencode/last-run/meta.json 2>/dev/null || echo "chore/auto-pr"
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+            {
+              echo 'commit_message<<EOF'
+              jq -r '.commitMessage // "chore: automated changes"' .opencode/last-run/meta.json 2>/dev/null || echo "chore: automated changes"
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.pr-summary.outputs.found == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ steps.pr-summary.outputs.commit_message }}
+          title: ${{ steps.pr-summary.outputs.title }}
+          body-path: .opencode/last-run/summary.md
+          branch: ${{ steps.pr-summary.outputs.branch }}
+          base: main
+          delete-branch: true
