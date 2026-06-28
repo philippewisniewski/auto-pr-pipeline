@@ -2,7 +2,7 @@
 
 An AI pipeline that auto-processes GitHub issues and PRs. Create an issue, open a PR, or comment `/opencode` — the pipeline analyzes, implements, reviews, and opens a PR automatically.
 
-Powered by [opencode](https://opencode.ai).
+Built for OpenCode [opencode](https://opencode.ai).
 
 ---
 
