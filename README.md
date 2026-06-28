@@ -90,7 +90,7 @@ opencode "fix the login timeout bug"
 
 ### What happens on first use (auto-bootstrap)
 
-The AI checks if `.github/workflows/auto-pr-pipeline.yml` exists. If not, it:
+The agent checks if `.github/workflows/auto-pr-pipeline.yml` exists. If not, it:
 
 1. Creates the caller workflow file that delegates to the central pipeline
 2. Creates `opencode.json` at the repo root (if missing)
