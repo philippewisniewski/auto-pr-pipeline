@@ -33,6 +33,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Configure git for safety
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Run OpenCode Orchestrator Loop
         uses: anomalyco/opencode/github@latest
         env:
@@ -50,10 +55,11 @@ jobs:
                format('New PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) }}
             ${{ github.event_name == 'pull_request_review_comment' && github.event.comment.body }}
 
-      - name: Configure git for safety
+      - name: Reset any AI commits (keep changes, uncommit)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ "$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
+            git reset --soft HEAD~$(git rev-list --count @{u}..HEAD)
+          fi
 
       - name: Read PR summary
         id: pr-summary
