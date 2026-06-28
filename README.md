@@ -34,7 +34,7 @@ GitHub Actions Workflow ─── runs opencode with the auto-pr-pipeline skill
 
 - A **GitHub account**
 - **Admin access** to the repo you want to use (needed to enable PR creation in settings)
-- **opencode CLI** installed ([docs](https://opencode.ai))
+- **OpenCode** installed ([docs](https://opencode.ai))
 - Optional: `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` for better AI models (falls back to free `opencode/big-pickle` if unset)
 
 ---
