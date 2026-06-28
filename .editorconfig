@@ -1,10 +1,10 @@
 # EditorConfig is awesome: https://EditorConfig.org
-root = true
+root = true                                                  # Stop searching parent .editorconfig files at this project root
 
-[*]
-indent_style = space
-indent_size = 2
-end_of_line = lf
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
+[*]                                                          # Apply to all files
+indent_style = space                                         # Use spaces for indentation (not tabs)
+indent_size = 2                                              # 2 spaces per indent level
+end_of_line = lf                                             # Unix-style line endings
+charset = utf-8                                              # Encode all files in UTF-8
+trim_trailing_whitespace = true                              # Strip trailing whitespace on save
+insert_final_newline = true                                  # Ensure files end with a newline
