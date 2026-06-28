@@ -1,1 +1,24 @@
 .opencode/last-run/
+
+# Go compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.test.exe
+
+# Go workspace & vendor
+vendor/
+go.work
+
+# Test output
+*.out
+
+# IDE & editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
