@@ -164,29 +164,3 @@ The job has a guard condition that prevents wasted runs:
 | **Comment `/opencode`** | Comment `/opencode <request>` on an issue or PR → pipeline acts on the request |
 | **Comment `/opencode plan`** | Produces a plan document (no code changes) |
 | **Local `opencode`** | Run `opencode "<request>"` in any repo with the global skill installed → auto-bootstraps if needed |
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Central Repo (auto-pr-pipeline)                     │
-│                                                       │
-│  .github/workflows/auto-pr-pipeline.yml              │
-│    └─ workflow_call + direct triggers                 │
-│  .opencode/skills/auto-pr-pipeline/SKILL.md          │
-│    └─ 6-phase pipeline definition                     │
-└────────────────────┬────────────────────────────────┘
-                     │ called via workflow_call
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│  Any Repo (caller)                                   │
-│                                                       │
-│  .github/workflows/auto-pr-pipeline.yml              │
-│    └─ delegates to central repo via uses:             │
-│       philippewisniewski/auto-pr-pipeline/...         │
-│  opencode.json                                       │
-│  (auto-created by bootstrap)                          │
-└─────────────────────────────────────────────────────┘
-```
