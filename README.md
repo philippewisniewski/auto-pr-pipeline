@@ -1,6 +1,6 @@
-# Orchestrator Loop
+# Auto PR Pipeline Loop Skill
 
-AI-powered pipeline that auto-processes GitHub issues and PRs via [opencode](https://opencode.ai). Submit a feature request, bug report, or `gh pr create` — the pipeline analyzes, implements, reviews, and opens a PR automatically.
+OpenCode Pipeline that auto-processes GitHub issues and PRs via [opencode](https://opencode.ai). Submit a feature request, bug report, or `gh pr create` — the pipeline analyzes, implements, reviews, and opens a PR automatically.
 
 ## Quick Start
 
