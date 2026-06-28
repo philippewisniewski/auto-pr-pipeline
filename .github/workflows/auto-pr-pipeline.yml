@@ -1,4 +1,4 @@
-name: orchestrator-loop
+name: auto-pr-pipeline
 on:
   issue_comment:
     types: [created]
@@ -10,7 +10,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  orchestrator-loop:
+  auto-pr-pipeline:
     if: |
       (github.event_name == 'issue_comment' &&
        (contains(github.event.comment.body, '/opencode') ||

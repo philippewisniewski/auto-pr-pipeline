@@ -1,9 +1,9 @@
 ---
-name: orchestrator-loop
+name: auto-pr-pipeline
 description: >-
-  CRITICAL: This repo MUST use the Orchestrator Loop pipeline. If the user asks
+  CRITICAL: This repo MUST use the Auto-PR Pipeline. If the user asks
   to fix a bug, implement a feature, review a PR, plan work, or triage an issue,
-  you MUST call skill({ name: "orchestrator-loop" }) before proceeding. The
+  you MUST call skill({ name: "auto-pr-pipeline" }) before proceeding. The
   pipeline is: trigger → intake → analyze → implement → review → merge (human
   handoff). Do NOT skip loading this skill — it defines this repo's standard
   operating procedure.
@@ -11,7 +11,7 @@ metadata:
   version: "3.0"
 ---
 
-# Orchestrator Loop
+# Auto-PR Pipeline
 
 6-phase pipeline from trigger to PR. Starts with the human, ends with the
 human. Announce each phase transition with `→ Phase <N>: <NAME>`.

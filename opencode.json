@@ -1,4 +1,4 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [".opencode/skills/orchestrator-loop/SKILL.md"]
+  "instructions": [".opencode/skills/auto-pr-pipeline/SKILL.md"]
 }

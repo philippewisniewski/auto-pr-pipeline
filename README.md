@@ -65,7 +65,7 @@ AI-powered pipeline that auto-processes GitHub issues and PRs via [opencode](htt
 
 ## How the Workflow Works
 
-`.github/workflows/orchestrator-loop.yml` runs on:
+`.github/workflows/auto-pr-pipeline.yml` runs on:
 - `issues: [opened, reopened]` — auto-trigger
 - `pull_request: [opened, synchronize, reopened]` — auto-review (skips branches starting with `opencode/` to prevent recursive loops)
 - `issue_comment` — when a comment contains `/opencode` or `/oc`
@@ -73,5 +73,5 @@ AI-powered pipeline that auto-processes GitHub issues and PRs via [opencode](htt
 
 The workflow:
 1. Checks out the repo with full git history
-2. Runs opencode with the `orchestrator-loop` skill loaded
+2. Runs opencode with the `auto-pr-pipeline` skill loaded
 3. Pushes any changes and creates/updates a PR via the post-step
