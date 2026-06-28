@@ -51,24 +51,29 @@ jobs:
           use_github_token: true
           prompt: >-
             ${{ github.event_name == 'issues' &&
-               format('New issue #{0}: {1}', github.event.issue.number, github.event.issue.title) }}
-            ${{ github.event_name == 'issue_comment' && github.event.comment.body }}
+               format('New issue #{0}: {1}', github.event.issue.number, github.event.issue.title) || '' }}
+            ${{ github.event_name == 'issue_comment' && github.event.comment.body || '' }}
             ${{ github.event_name == 'pull_request' &&
-               format('New PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) }}
-            ${{ github.event_name == 'pull_request_review_comment' && github.event.comment.body }}
+               format('New PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || '' }}
+            ${{ github.event_name == 'pull_request_review_comment' && github.event.comment.body || '' }}
 
-      - name: Create Pull Request from pushed branch
+      - name: Push and create PR
         if: always() && steps.opencode.outcome != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || github.token }}
         run: |
           BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          TITLE=$(head -1 .opencode/last-run/summary.md 2>/dev/null | sed 's/^# //' || echo "Automated changes")
+          REMOTE_SHA=$(git ls-remote origin "refs/heads/$BRANCH" 2>/dev/null | awk '{print $1}')
+          LOCAL_SHA=$(git rev-parse HEAD)
+          if [ "$REMOTE_SHA" != "$LOCAL_SHA" ]; then
+            git push origin "$BRANCH" 2>/dev/null || true
+          fi
           if [ -f .opencode/last-run/summary.md ]; then
+            TITLE=$(head -1 .opencode/last-run/summary.md | sed 's/^# //')
             gh pr create \
               --base main \
               --head "$BRANCH" \
               --title "$TITLE" \
               --body-file .opencode/last-run/summary.md \
-              --repo "${{ github.repository }}" || true
+              --repo "${{ github.repository }}" 2>/dev/null || true
           fi
