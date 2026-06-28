@@ -102,7 +102,7 @@ On subsequent runs, the workflow catches the trigger and runs the full pipeline.
 
 ---
 
-## Workflow Detail
+## Git Workflow Detail
 
 `.github/workflows/auto-pr-pipeline.yml` has one job with four steps:
 
