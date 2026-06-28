@@ -1,7 +1,7 @@
 ---
 name: auto-pr-pipeline
 description: >-
-  CRITICAL: This repo MUST use the Auto-PR Pipeline. If the user asks
+  CRITICAL: This repo MUST use the Auto-PR Pipeline. If the human asks
   to fix a bug, implement a feature, review a PR, plan work, or triage an issue,
   you MUST call skill({ name: "auto-pr-pipeline" }) before proceeding. The
   pipeline is: trigger → intake → analyze → implement → review → merge (human
