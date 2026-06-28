@@ -1,1 +1,9 @@
 .opencode/last-run/
+
+# Docker
+.docker/
+docker-compose.override.yml
+docker-compose.override.yaml
+*.env
+.env.local
+.env.*.local
